@@ -6,7 +6,7 @@ This project was created as an excercise getting familiar with email handling in
 The purpose was to automatically read an email and add a kodi pvr timer entry based on information contained in the email body.
 The script leverages Python's imaplib to log into an imap server, using server hostname and user credentials provided in an configuration file. The beauty of it is, that it does not depend on the pvr backend and only uses the kodi API (JSON-RPC) to get things done.
 
-The primary trigger for an email to be processed is the subject line, which is configurable as well as the list of allowed senders which is checked on receive. If the subject line matches the configured value the mail body is searched for signal words to identify what title is to be recorded, when and on what channel. These signal words must also be specified in the configuration file.
+The primary trigger for an email to be processed is the subject line, which is configurable as well as the list of allowed senders which is checked on receipt. If the subject line matches the configured value the mail body is searched for signal words to identify what title is to be recorded, when and on what channel. These signal words must also be specified in the configuration file.
 
 The script retrieves the EPG data (broadcast list) from kodi for the specified channel. If a match is found for the requested title a pvr timer entry is created and added to kodi's pvr timer list. If no particular start time is specified, timer entries are created for every match in the EPG data base. The (then updated) kodi pvr timer list is (optionally) replied to the sender for confirmation.
 
