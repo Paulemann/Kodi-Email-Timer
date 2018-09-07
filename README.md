@@ -12,7 +12,7 @@ The script retrieves the EPG data (broadcast list) from kodi for the specified c
 
 If no signal words are found or provided in the email body the script can reply to the sender with the currently configured kodi pvr timer list. This can also be used for help or info as the signal words are supplied in the headline of the replied timer list. It requires the reply subject and info text to be configured. 
 
-Since the script excessively uses kodi JSON-RPC calls to retrieve information from kodi and eventually add the pvr timer the kodi host must be online. The script tries to wake up the kodi host via wake-on-lan command if the host is not responsive prior to sending the JSON-RPC requests. To that purpose, the kodi host's mac address should be specified in the configuration.
+Since the script makes excessively use of kodi JSON-RPC calls to retrieve information from kodi and eventually add the pvr timer, the kodi host must be online. The script tries to wake up the kodi host via wake-on-lan command if the host is not responsive prior to sending the JSON-RPC requests. To that purpose, the kodi host's mac address should be specified in the configuration.
 
 Look at the contained kodi_timer.ini.template for what needs to be configured and how. Once you completed the configuration, rename or copy the file to kodi_timer.ini and put in the same folder with kodi_timer.py. 
 
