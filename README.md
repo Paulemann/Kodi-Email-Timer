@@ -18,4 +18,4 @@ Look at the contained kodi_timer.ini.template for what needs to be configured an
 
 For regular email checks you should create a cron job calling the script every x minutes. If not changed in the code, the script will log its output to kodi_alert.log locally.
 
-Credits go to numerous other programmers and users whose projects, code snippets and comments inspired me to get started and eventually finalize it beyond the first, sometimes frustrating attempts. Whereever i re-used (mostly) unchanged and publicly available material from other sources i added a respective commment in my code.
+Credits go to numerous other programmers and users whose projects, code snippets and comments inspired me to get started and eventually finalize it beyond the first, sometimes frustrating attempts. Whereever I re-used (mostly) unchanged and publicly available material from other sources I added a respective commment in my code.
