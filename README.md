@@ -14,4 +14,4 @@ If no signal words are found or provided in the email body the script can reply 
 
 Since the script excessively uses kodi JSON-RPC calls to retrieve information from kodi and eventually add the pvr timer the kodi host must be online. The script tries to wake up the kodi host via wake-on-lan command if the host is not responsive prior to sending the JSON-RPC requests. To that purpose, the kodi host's mac address should be specified in the configuration.
 
-Credits go to numerous other programmers and users whose projects, code snippets and comments inspired me to start this project and get it finalized beyond the first, sometimes frustrating attempts. Where ever i used (mostly unchanged) code from other projects i added a respective commment in my code.
+Credits go to numerous other programmers and users whose projects, code snippets and comments inspired me to get started and eventually finalize it beyond the first, sometimes frustrating attempts. Whereever i re-used (mostly) unchanged and publicly available material from other sources i added a respective commment in my code.
