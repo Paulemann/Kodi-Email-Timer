@@ -31,7 +31,7 @@ from email.mime.text import MIMEText
 import smtplib
 
 
-# global variables
+# global settings
 _log_file_ = os.path.splitext(os.path.basename(__file__))[0] + '.log'
 _log_enable_ = True
 
@@ -54,7 +54,7 @@ def log(message, level='INFO'):
     print '[' + level + ']: ' + message
 
 
-def host_up(host, port):
+def host_is_up(host, port):
   try:
     sock = socket.create_connection((host, port), timeout=3)
   #except socket.timout:
@@ -251,7 +251,11 @@ def convert(date):
     dt = datetime.strptime(date, "%d.%m.%Y %H:%M")
     conv_date = datetime.strftime(dt, "%Y-%m-%d %H:%M")
   except:
-    conv_date = date
+    try:
+      dt = datetime.strptime(date, "%d.%m.%Y")
+      conv_date = datetime.strftime(dt, "%Y-%m-%d")
+    except:
+      conv_date = date
 
   return conv_date
 
@@ -416,18 +420,18 @@ def checkmail():
     #result, data = mail.uid('search', None, 'UNSEEN', 'SUBJECT', _search_subject_, 'ON', today)
 
     status, data = mail.uid('search', None, 'UNSEEN', 'SUBJECT', _search_subject_)
-    id_list = data[0].split()
 
     if status == 'OK':
-      if len(id_list) > 0:
+      if data[0]:
         log('Found {} new mail(s) with matching subject \'{} \'.'.format(len(id_list), _search_subject_))
 
-        for id in id_list:
+        uid_list = data[0].split()
+        for uid in uid_list:
           channel = ''
           title = ''
           starttime = ''
 
-          status, data = mail.uid('fetch', id, '(RFC822)')
+          status, data = mail.uid('fetch', uid, '(RFC822)')
 
           raw_email = data[0][1]
           message = email.message_from_string(raw_email)
@@ -459,8 +463,8 @@ def checkmail():
           if (channel and title) or (not channel and not title and not starttime):
             result.append((sender, channel, title, convert(starttime)))
 
-          #mail.uid('store', id, '+FLAGS', '\\Seen')
-          mail.uid('store', id, '+FLAGS', '(\\Deleted)')
+          #mail.uid('store', uid, '+FLAGS', '\\Seen')
+          mail.uid('store', uid, '+FLAGS', '(\\Deleted)')
           mail.expunge()
 
       else:
@@ -487,7 +491,7 @@ if __name__ == '__main__':
 
   timer_schedule = checkmail()
 
-  if timer_schedule and not host_up(_kodi_, _kodi_port_):
+  if timer_schedule and not host_is_up(_kodi_, _kodi_port_):
     log('Trying to wake up kodi ...')
 
     if wake_on_lan(_kodi_mac_):
