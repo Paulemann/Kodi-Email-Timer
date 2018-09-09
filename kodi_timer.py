@@ -465,7 +465,7 @@ def checkmail():
 if __name__ == '__main__':
   global _config_file_, log_file, _debug_
 
-  parser = argparse.ArgumentParser(description='Sends a notification to a kodi host and triggers addon execution on email receipt')
+  parser = argparse.ArgumentParser(description='Python script to add kodi pvr timers based on email content')
 
   parser.add_argument('-d', '--debug', dest='debug', action='store_true', help="Output debug messages (Default: False)")
   parser.add_argument('-l', '--logfile', dest='log_file', default=None, help="Path to log file (Default: None=stdout)")
