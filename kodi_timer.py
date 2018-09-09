@@ -463,7 +463,7 @@ def checkmail():
 
 
 if __name__ == '__main__':
-  global _config_file_, log_file, _debug_
+  global _config_file_, _log_file_, _debug_
 
   parser = argparse.ArgumentParser(description='Python script to add kodi pvr timers based on email content')
 
@@ -477,12 +477,12 @@ if __name__ == '__main__':
   _log_file_ = args.log_file
   _debug_ = args.debug
 
+  if _log_file_:
+    logging.basicConfig(filename=_log_file_, format='%(asctime)s [%(levelname)s]: %(message)s', datefmt='%m/%d/%Y %H:%M:%S', level=logging.DEBUG)
+
   log('Output Debug: {}'.format(_debug_), level='DEBUG')
   log('Log file:     {}'.format(_log_file_), level='DEBUG')
   log('Config file:  {}'.format(_config_file_), level='DEBUG')
-
-  if _log_file_:
-    logging.basicConfig(filename=_log_file_, format='%(asctime)s [%(levelname)s]: %(message)s', datefmt='%m/%d/%Y %H:%M:%S', level=logging.DEBUG)
 
   if not read_config():
      sys.exit()
