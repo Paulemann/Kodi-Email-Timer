@@ -12,9 +12,8 @@ from email.utils import parseaddr, formataddr
 # required by wake_on_lan:
 import socket, struct
 
-# required by decodeHeader, sendmail
-import HTMLParser
-from email.header import decode_header, Header
+# required by sendmail
+from email.header import Header
 
 # general
 import logging, sys, os, time
@@ -32,26 +31,28 @@ import smtplib
 
 
 # global settings
-_log_file_ = os.path.splitext(os.path.basename(__file__))[0] + '.log'
-_log_enable_ = True
+#_config_file = os.path.splitext(os.path.basename(__file__))[0] + '.ini'
+#_log_file_ = os.path.splitext(os.path.basename(__file__))[0] + '.log'
+#_debug_ = False
 
-_config_file_ = 'kodi_timer.ini'
+import argparse
 
 
 def log(message, level='INFO'):
-  if _log_enable_:
-    if level == 'DEBUG':
+  if _log_file_:
+    if level == 'DEBUG' and _debug_:
       logging.debug(message)
     if level == 'INFO':
       logging.info(message)
     if level == 'WARNING':
       logging.warning(message)
     if level == 'ERROR':
-       logging.error(message)
+      logging.error(message)
     if level == 'CRITICAL':
-     logging.crtitcal(message)
+      logging.crtitcal(message)
   else:
-    print '[' + level + ']: ' + message
+     if level != 'DEBUG' or _debug_:
+       print '[' + level + ']: ' + message
 
 
 def host_is_up(host, port):
@@ -111,7 +112,7 @@ def sendmail(to_address, subject, message):
   return True
 
 
-def is_email(a):
+def is_mailaddress(a):
   try:
     t = a.split('@')[1].split('.')[1]
   except:
@@ -139,7 +140,6 @@ def is_int(n):
 
 
 def read_config():
-
   global _kodi_, _kodi_mac_, _kodi_port_, _kodi_user_, _kodi_passwd_
   global _imap_server_, _smtp_server_,_mail_user_, _mail_passwd_
   global _search_subject_, _search_channel_, _search_title_, _search_starttime_
@@ -155,7 +155,7 @@ def read_config():
     # Read the config file
     config = ConfigParser.ConfigParser()
 
-    config.read([os.path.abspath('kodi_timer.ini')])
+    config.read([os.path.abspath(_config_file_)])
 
     _kodi_             = config.get('KODI JSON-RPC', 'hostname')
     _kodi_mac_         = config.get('KODI JSON-RPC', 'macaddress')
@@ -164,7 +164,7 @@ def read_config():
     _kodi_passwd_      = config.get('KODI JSON-RPC', 'password')
 
     if not is_hostname(_kodi_) or not is_int(_kodi_port_):
-      log('Wrong or missing value(s) in configuration file.')
+      log('Wrong or missing value(s) in configuration file (section [KODI JSON-RPC]).')
       return False
 
     _imap_server_      = config.get('Mail Account', 'imapserver')
@@ -172,8 +172,8 @@ def read_config():
     _mail_user_        = config.get('Mail Account', 'username')
     _mail_passwd_      = config.get('Mail Account', 'password')
 
-    if not is_hostname(_imap_server_) or not is_hostname(_smtp_server_) or not is_email(_mail_user_) or not _mail_passwd_:
-      log('Wrong or missing value(s) in configuration file.')
+    if not is_hostname(_imap_server_) or not is_hostname(_smtp_server_) or not is_mailaddress(_mail_user_) or not _mail_passwd_:
+      log('Wrong or missing value(s) in configuration file (section [Mail Account].')
       return False
 
     _search_subject_   = config.get('Search Patterns', 'subject').strip().replace('"', '').replace('\'', '')
@@ -182,14 +182,14 @@ def read_config():
     _search_starttime_ = [p.strip().replace('"', '').replace('\'', '') for p in config.get('Search Patterns', 'starttime').split(',')]
 
     if not _search_subject_ or not _search_channel_ or not _search_title_ or not _search_starttime_:
-      log('Wrong or missing value(s) in configuration file.')
+      log('Wrong or missing value(s) in configuration file (section [Search Patterns]).')
       return False
 
     _allowed_senders_  = [p.strip().replace('"', '').replace('\'', '') for p in config.get('Allowed Senders', 'mailaddress').split(',')]
 
     for sender in  _allowed_senders_:
-      if not is_email(sender):
-        log(' Wrong or missing value(s) in configuration file.')
+      if not is_mailaddress(sender):
+        log(' Wrong or missing value(s) in configuration file (section [Allowed Senders]).')
         return False
 
     _reply_subject_    = config.get('Reply Message', 'subject')
@@ -202,23 +202,6 @@ def read_config():
   log('Configuration OK.')
 
   return True
-
-
-# to unescape xml entities
-_parser = HTMLParser.HTMLParser()
-
-def decodeHeader(header):
-  values = []
-  if header and header.startswith('"=?'):
-    header = header.replace('"', '')
-
-  for value, encoding in decode_header(header):
-    if encoding:
-       value = value.decode(encoding)
-    values.append( _parser.unescape(value))
-
-  decoded = ' '.join([v for v in values])
-  return decoded
 
 
 class Zone(tzinfo):
@@ -436,8 +419,7 @@ def checkmail():
           raw_email = data[0][1]
           message = email.message_from_string(raw_email)
 
-          from_address = parseaddr(decodeHeader(message['From']))
-          sender = from_address[1]
+          sender = parseaddr(message['From'])
           if sender not in _allowed_senders_:
             log('{} is not in the allowed sender list.'.format(sender))
             continue
@@ -481,7 +463,25 @@ def checkmail():
 
 
 if __name__ == '__main__':
-  if _log_enable_:
+  global _config_file_, log_file, _debug_
+
+  parser = argparse.ArgumentParser(description='Sends a notification to a kodi host and triggers addon execution on email receipt')
+
+  parser.add_argument('-d', '--debug', dest='debug', action='store_true', help="Output debug messages (Default: False)")
+  parser.add_argument('-l', '--logfile', dest='log_file', default=None, help="Path to log file (Default: None=stdout)")
+  parser.add_argument('-c', '--config', dest='config_file', default=os.path.splitext(os.path.basename(__file__))[0] + '.ini', help="Path to config file (Default: <Script Name>.ini)")
+
+  args = parser.parse_args()
+
+  _config_file_ = args.config_file
+  _log_file_ = args.log_file
+  _debug_ = args.debug
+
+  log('Output Debug: {}'.format(_debug_), level='DEBUG')
+  log('Log file:     {}'.format(_log_file_), level='DEBUG')
+  log('Config file:  {}'.format(_config_file_), level='DEBUG')
+
+  if _log_file_:
     logging.basicConfig(filename=_log_file_, format='%(asctime)s [%(levelname)s]: %(message)s', datefmt='%m/%d/%Y %H:%M:%S', level=logging.DEBUG)
 
   if not read_config():
