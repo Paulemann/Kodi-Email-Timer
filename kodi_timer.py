@@ -176,16 +176,16 @@ def read_config():
       log('Wrong or missing value(s) in configuration file (section [Mail Account].')
       return False
 
-    _search_subject_   = config.get('Search Patterns', 'subject').strip().replace('"', '').replace('\'', '')
-    _search_channel_   = [p.strip().replace('"', '').replace('\'', '') for p in config.get('Search Patterns', 'channel').split(',')]
-    _search_title_     = [p.strip().replace('"', '').replace('\'', '') for p in config.get('Search Patterns', 'title').split(',')]
-    _search_starttime_ = [p.strip().replace('"', '').replace('\'', '') for p in config.get('Search Patterns', 'starttime').split(',')]
+    _search_subject_   = config.get('Search Patterns', 'subject').strip(' "\'')
+    _search_channel_   = [p.strip(' "\'') for p in config.get('Search Patterns', 'channel').split(',')]
+    _search_title_     = [p.strip(' "\'') for p in config.get('Search Patterns', 'title').split(',')]
+    _search_starttime_ = [p.strip(' "\'') for p in config.get('Search Patterns', 'starttime').split(',')]
 
     if not _search_subject_ or not _search_channel_ or not _search_title_ or not _search_starttime_:
       log('Wrong or missing value(s) in configuration file (section [Search Patterns]).')
       return False
 
-    _allowed_senders_  = [p.strip().replace('"', '').replace('\'', '') for p in config.get('Allowed Senders', 'mailaddress').split(',')]
+    _allowed_senders_  = [p.strip(' "\'') for p in config.get('Allowed Senders', 'mailaddress').split(',')]
 
     for sender in  _allowed_senders_:
       if not is_mailaddress(sender):
@@ -445,7 +445,7 @@ def checkmail():
           if (channel and title) or (not channel and not title and not starttime):
             result.append((sender, channel, title, convert(starttime)))
 
-          #mail.uid('store', uid, '+FLAGS', '\\Seen')
+          #mail.uid('store', uid, '+FLAGS', '(\\Seen)')
           mail.uid('store', uid, '+FLAGS', '(\\Deleted)')
           mail.expunge()
 
